@@ -33,8 +33,11 @@ jobs:
 
     - name: Run commands on EC2 via SSM
       run: |
+        STACK_NAME="Exercise6"
+        instance_id=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='InstanceId'].OutputValue" --output text)
+        echo $instance_id
         aws ssm send-command \
-          --instance-ids "i-XXXXX" \
+          --instance-ids $instance_id \
           --document-name "AWS-RunShellScript" \
           --comment "Deploy Docker Compose" \
           --parameters commands="aws s3 cp s3://wazuh-ex-6-bucket/ /home/ec2-user/ --recursive && cd /home/ec2-user && docker-compose down && docker-compose up -d" \
