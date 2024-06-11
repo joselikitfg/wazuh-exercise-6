@@ -40,7 +40,7 @@ jobs:
           --instance-ids $instance_id \
           --document-name "AWS-RunShellScript" \
           --comment "Deploy Docker Compose" \
-          --parameters commands="aws s3 cp s3://wazuh-ex-6-bucket/ /home/ec2-user/ --recursive && cd /home/ec2-user && docker-compose down && docker-compose up -d" \
+          --parameters commands="aws s3 cp s3://wazuh-ex-6-bucket/ /home/ec2-user/ --recursive && cd /home/ec2-user && /usr/local/bin/docker-compose down && /usr/local/bin/docker-compose up -d" \
           --timeout-seconds 600 \
           --max-concurrency "50" \
           --max-errors "0" \
