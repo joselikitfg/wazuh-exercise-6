@@ -118,10 +118,35 @@ Resources:
       GroupDescription: Test security group
       VpcId: !Ref WazuhVPC
       SecurityGroupIngress:
+        # - IpProtocol: tcp
+        #   FromPort: 22
+        #   ToPort: 22
+        #   CidrIp: 0.0.0.0/0
         - IpProtocol: tcp
-          FromPort: 22
-          ToPort: 22
+          FromPort: 1514
+          ToPort: 1514
           CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 1515
+          ToPort: 1515
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 514
+          ToPort: 514
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 55000
+          ToPort: 55000
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 9200
+          ToPort: 9200
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+
 
   Instance:
     Type: AWS::EC2::Instance
