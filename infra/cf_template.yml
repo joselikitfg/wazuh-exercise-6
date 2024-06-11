@@ -1,0 +1,152 @@
+# aws cloudformation create-stack --stack-name Exercise6 --template-body file://infra/cf_template.yml --region eu-west-1 --capabilities CAPABILITY_NAMED_IAM
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Configuración de red para Wazuh con dos subredes públicas'
+
+Parameters:
+  VpcCIDR:
+    Description: CIDR para la VPC
+    Type: String
+    Default: 10.0.0.0/27
+
+  PublicSubnet1CIDR:
+    Description: CIDR para la Subred Pública 1
+    Type: String
+    Default: 10.0.0.0/28
+
+  PublicSubnet2CIDR:
+    Description: CIDR para la Subred Pública 2
+    Type: String
+    Default: 10.0.0.16/28
+
+  KeyName:
+    Description: Nombre del par de claves SSH
+    Type: String
+    Default: wazuh-key # asume ya existente
+
+Resources:
+  WazuhVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCIDR
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      InstanceTenancy: default
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref WazuhVPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref WazuhVPC
+      CidrBlock: !Ref PublicSubnet1CIDR
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: !Select [0, !GetAZs '']
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref WazuhVPC
+      CidrBlock: !Ref PublicSubnet2CIDR
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: !Select [1, !GetAZs '']
+
+  RouteTablePublic:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref WazuhVPC
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref RouteTablePublic
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  SubnetRouteTableAssociationPublic1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet1
+      RouteTableId: !Ref RouteTablePublic
+
+  SubnetRouteTableAssociationPublic2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet2
+      RouteTableId: !Ref RouteTablePublic
+
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref InstanceRole
+
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Test security group
+      VpcId: !Ref WazuhVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+
+  Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      KeyName: !Ref KeyName
+      AvailabilityZone: !Select [0, !GetAZs '']
+      ImageId: ami-0163d8bb0e1bc3cb4
+      InstanceType: t2.medium
+      IamInstanceProfile: !Ref InstanceProfile
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs: 
+            VolumeType: gp3
+            VolumeSize: 8
+      SubnetId: !Ref PublicSubnet1
+      SecurityGroupIds: 
+        - !Ref SecurityGroup
+      Tags:
+        - Key: Name
+          Value: wazuh-exercise-6
+      UserData:
+        Fn::Base64:
+          !Sub |
+            #!/bin/bash
+            hostname="test-server"
+            sudo hostnamectl set-hostname $hostname
+
+Outputs:
+  VpcId:
+    Description: ID de la VPC
+    Value: !Ref WazuhVPC
+
+  PublicSubnet1Id:
+    Description: ID de la Subred Pública 1
+    Value: !Ref PublicSubnet1
+
+  PublicSubnet2Id:
+    Description: ID de la Subred Pública 2
+    Value: !Ref PublicSubnet2

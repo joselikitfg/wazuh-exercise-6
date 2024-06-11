@@ -1,0 +1,36 @@
+  
+name: Deploy AWS CF
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+    
+jobs:
+  build-deploy:
+    needs: test_job
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    
+    - name: "Setup AWS Credentials"
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
+        aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+    - name: Deploy CloudFormation stack
+      run: |
+        aws cloudformation \
+          create-stack \
+          --stack-name Exercise6 \
+          --template-body file://infra/cf_template.yml \
+          --region eu-west-1 \
+          --capabilities CAPABILITY_NAMED_IAM
