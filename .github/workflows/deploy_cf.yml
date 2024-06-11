@@ -44,7 +44,8 @@ jobs:
             update-stack \
             --stack-name $STACK_NAME \
             --template-body file://$TEMPLATE_FILE \
-            --region eu-west-1
+            --region eu-west-1 \
+            --capabilities CAPABILITY_NAMED_IAM
         else
           echo "Stack does not exist. Creating stack..."
           aws cloudformation \
