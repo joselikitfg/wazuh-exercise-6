@@ -41,7 +41,7 @@ jobs:
         if [ "${{ steps.check_stack.outputs.exists }}" == "true" ]; then
           echo "Stack exists. Updating stack..."
           aws cloudformation \
-            deployk \
+            deploy \
             --stack-name $STACK_NAME \
             --template-body file://$TEMPLATE_FILE \
             --region eu-west-1 \
