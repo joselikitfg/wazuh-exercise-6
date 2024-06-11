@@ -135,6 +135,8 @@ Aquí se puede ver un ejemplo de ejecución del workflow `cicd`.
 Aquí se puede observar el histórico de comandos de SSM Commands que ejecuta el workflow de `cicd` hasta conseguir el resultado.
 ![](docs/ssm_command_history.png)
 
+Aprovechamos la IP de la instancia para acceder y comprobar el estado del servicio
+![](docs/instance_public_ip.png)
 
 
 Finalmente podemos ver el servicio de Wazuh desplegado y funcionando tomando el repositorio como fuente de verdad y las GitHub Action como sistema de CI/CD.
