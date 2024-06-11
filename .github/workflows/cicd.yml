@@ -1,0 +1,42 @@
+name: ☁️🧑‍🏭 CICD Wazuh 
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+
+jobs:
+  cicd:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    
+    - name: "Setup AWS Credentials"
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
+        aws-region: eu-west-1
+
+    - name: Copy files to S3
+      run: |
+        aws s3 cp ./docker-compose.yml s3://wazuh-ex-6-bucket/docker-compose.yml
+
+    - name: Run commands on EC2 via SSM
+      run: |
+        aws ssm send-command \
+          --instance-ids "i-XXXXX" \
+          --document-name "AWS-RunShellScript" \
+          --comment "Deploy Docker Compose" \
+          --parameters commands="aws s3 cp s3://wazuh-ex-6-bucket/docker-compose.yml /home/ec2-user/docker-compose.yml && cd /home/ec2-user && docker-compose down && docker-compose up -d" \
+          --timeout-seconds 600 \
+          --max-concurrency "50" \
+          --max-errors "0" \
+          --region eu-west-1
