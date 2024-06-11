@@ -161,3 +161,9 @@ Outputs:
   PublicSubnet2Id:
     Description: ID de la Subred Pública 2
     Value: !Ref PublicSubnet2
+
+  InstanceId:
+    Description: "ID de la instancia EC2"
+    Value: !Ref Instance
+    Export:
+      Name: InstanceID
