@@ -81,6 +81,17 @@ Resources:
       SubnetId: !Ref PublicSubnet2
       RouteTableId: !Ref RouteTablePublic
 
+  S3Bucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: wazuh-ex-6-bucket
+      AccessControl: Private
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: Name
+          Value: wazuh-ex-6-bucket
+
   InstanceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -93,6 +104,7 @@ Resources:
             Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
 
   InstanceProfile:
     Type: AWS::IAM::InstanceProfile
