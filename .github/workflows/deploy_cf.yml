@@ -25,11 +25,32 @@ jobs:
         role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
         aws-region: eu-west-1
 
+    - name: Check if CloudFormation stack exists
+      id: check_stack
+      run: |
+        STACK_NAME="Exercise6"
+        if aws cloudformation describe-stacks --stack-name $STACK_NAME > /dev/null 2>&1; then
+          echo "exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "exists=false" >> $GITHUB_OUTPUT
+        fi
     - name: Deploy CloudFormation stack
       run: |
-        aws cloudformation \
-          create-stack \
-          --stack-name Exercise6 \
-          --template-body file://infra/cf_template.yml \
-          --region eu-west-1 \
-          --capabilities CAPABILITY_NAMED_IAM
+        STACK_NAME="Exercise6"
+        TEMPLATE_FILE="infra/cf_template.yml"
+        if [ "${{ steps.check_stack.outputs.exists }}" == "true" ]; then
+          echo "Stack exists. Updating stack..."
+          aws cloudformation \
+            update-stack \
+            --stack-name $STACK_NAME \
+            --template-body file://$TEMPLATE_FILE \
+            --region eu-west-1
+        else
+          echo "Stack does not exist. Creating stack..."
+          aws cloudformation \
+            create-stack \
+            --stack-name $STACK_NAME \
+            --template-body file://infra/cf_template.yml \
+            --region eu-west-1 \
+            --capabilities CAPABILITY_NAMED_IAM
+        fi
