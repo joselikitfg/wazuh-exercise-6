@@ -28,8 +28,16 @@ jobs:
     - name: Copy files to S3
       
       run: |
+        # Assumes content on s3://wazuh-ex-6-bucket/config/wazuh_indexer_ssl_certs
+
         aws s3 cp ./src/docker-compose.yml s3://wazuh-ex-6-bucket/docker-compose.yml
-        aws s3 cp ./src/html/index.html s3://wazuh-ex-6-bucket/html/index.html
+        aws s3 cp ./src/config/wazuh_cluster/wazuh_manager.conf s3://wazuh-ex-6-bucket/config/wazuh_cluster/wazuh_manager.conf
+        aws s3 cp ./src/config/wazuh_dashboard/opensearch_dashboards.yml s3://wazuh-ex-6-bucket/config/wazuh_dashboard/opensearch_dashboards.yml
+        aws s3 cp ./src/config/wazuh_dashboard/wazuh.yml s3://wazuh-ex-6-bucket/config/wazuh_dashboard/wazuh.yml
+        aws s3 cp ./src/config/wazuh_indexer/internal_users.yml s3://wazuh-ex-6-bucket/config/wazuh_indexer/internal_users.yml
+        aws s3 cp ./src/config/wazuh_indexer/wazuh.indexer.yml s3://wazuh-ex-6-bucket/config/wazuh_indexer/wazuh.indexer.yml
+        aws s3 cp ./src/config/certs.yml s3://wazuh-ex-6-bucket/config/certs.yml
+
 
     - name: Run commands on EC2 via SSM
       run: |
