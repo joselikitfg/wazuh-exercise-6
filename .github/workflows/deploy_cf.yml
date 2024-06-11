@@ -1,5 +1,5 @@
   
-name: Deploy AWS CF
+name: ☁️🚀 Deploy AWS CF Basic Infra
 
 on:
   workflow_dispatch:
