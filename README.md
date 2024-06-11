@@ -1,0 +1,1 @@
+# wazuh-exercise-6
